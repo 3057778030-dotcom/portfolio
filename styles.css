@@ -687,6 +687,286 @@ a.button,
   line-height: 1.6;
 }
 
+.carousel-controls {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.carousel-card:focus-visible,
+.automation-screenshot a:focus-visible,
+.gallery-image-link:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 5px;
+}
+
+.carousel-card figcaption p {
+  display: none;
+}
+
+.automation-feature {
+  padding: clamp(24px, 4vw, 56px);
+}
+
+.automation-intro {
+  max-width: 780px;
+  margin-bottom: 36px;
+}
+
+.automation-intro .section-lead {
+  margin-top: 16px;
+}
+
+.automation-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
+  gap: clamp(24px, 4vw, 56px);
+}
+
+.impact-value {
+  margin: 0;
+  color: var(--accent);
+  font-size: clamp(44px, 5.5vw, 76px);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1.15;
+}
+
+.impact-value span {
+  font-size: 0.6em;
+}
+
+.impact-label {
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+
+.automation-flow {
+  list-style: none;
+  padding: 0;
+  margin: 28px 0;
+  display: grid;
+  gap: 20px;
+}
+
+.automation-flow li {
+  border-left: 2px solid var(--accent);
+  padding-left: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.automation-flow span {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.automation-screenshot {
+  min-width: 0;
+  margin: 0;
+}
+
+.automation-screenshot a {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--panel-strong);
+}
+
+.automation-screenshot img {
+  width: 100%;
+  height: auto;
+}
+
+.automation-screenshot figcaption {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.automation-sharing {
+  margin-top: 44px;
+  padding-top: 36px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  align-items: center;
+  gap: 32px;
+}
+
+.automation-sharing h3 {
+  margin: 0 0 16px;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.4;
+}
+
+.button {
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.modal-mosaic a,
+.gallery-image-link {
+  display: block;
+  min-width: 0;
+}
+
+.case-study .detail-shell {
+  display: block;
+  overflow: visible;
+}
+
+.case-study .detail-track {
+  display: block;
+  min-width: 0;
+  height: auto;
+  width: min(1200px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0;
+}
+
+.case-study .detail-panel {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 0 0 28px;
+}
+
+.case-study .info-panel {
+  padding: clamp(24px, 4vw, 48px);
+}
+
+.case-study .detail-intro h1 {
+  font-size: clamp(32px, 5vw, 60px);
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+
+.case-study .detail-desc {
+  max-width: 75ch;
+  margin-bottom: 0;
+}
+
+.case-study .detail-facts {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.case-study .gallery-stage {
+  padding: 16px 0 0;
+  gap: 28px;
+}
+
+.case-study .gallery-title {
+  display: grid;
+  gap: 12px;
+}
+
+.case-study .gallery-title p {
+  max-width: 75ch;
+}
+
+.case-study .gallery-grid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.8fr);
+  gap: 24px;
+}
+
+body.case-study .gallery-card {
+  min-height: 0;
+  align-self: start;
+}
+
+.document-card .copy {
+  gap: 18px;
+}
+
+.document-card .button {
+  justify-self: start;
+}
+
+.related-projects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 16px 0;
+}
+
+@media (max-width: 760px) {
+  .related-projects .button {
+    white-space: normal;
+    text-align: left;
+    line-height: 1.6;
+    padding: 14px 18px;
+  }
+}
+
+section[id] {
+  scroll-margin-top: 90px;
+}
+
+.case-study .gallery-card.wide {
+  grid-column: auto;
+}
+
+.case-study .gallery-image-link img {
+  height: auto !important;
+  min-height: 0;
+  object-fit: contain;
+  filter: none;
+}
+
+.case-study .gallery-card .copy {
+  min-height: 0;
+  padding: 10px;
+}
+
+.case-study .gallery-card h5 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.case-study .gallery-card p {
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+@media (max-width: 760px) {
+  .automation-overview,
+  .automation-sharing,
+  .case-study .gallery-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .case-study .detail-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .automation-sharing {
+    gap: 24px;
+  }
+
+  .topbar-inner {
+    flex-wrap: wrap;
+    padding: 16px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .works-copy {
   position: relative;
   overflow: hidden;

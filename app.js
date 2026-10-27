@@ -46,7 +46,7 @@
                <p style="margin-top: 10px;">${item.detail}</p>
                <a class="award-link" href="${item.image}" target="_blank" rel="noreferrer">打开 PDF</a>
              </div>`
-          : `<img src="${item.image}" alt="${item.title}" style="height: 260px;" />`;
+          : `<img src="${item.image}" alt="${item.title}" loading="lazy" style="height: 260px;" />`;
 
         return `
           <article class="award-card fade-in delay-${Math.min(index + 1, 5)}">
@@ -64,14 +64,16 @@
     const stage = document.getElementById("carousel-stage");
     if (!orbit || !stage) return;
 
-    const radius = Math.min(250, Math.max(180, stage.clientWidth * 0.26));
+    const orbitStep = 360 / data.projects.length;
+    const getRadius = () => Math.min(250, Math.max(100, stage.clientWidth * 0.26));
+    let radius = getRadius();
     let angle = -25;
 
     orbit.innerHTML = data.projects
       .map((project, index) => {
-        const turn = index * 120;
+        const turn = index * orbitStep;
         return `
-          <article class="carousel-card ${index === 0 ? "is-active" : ""}" data-project="${project.slug}" style="--angle:${turn}deg; --radius:${radius}px;">
+          <article class="carousel-card ${index === 0 ? "is-active" : ""}" data-project="${project.slug}" role="button" tabindex="0" aria-label="预览${project.title}" style="--angle:${turn}deg; --radius:${radius}px;">
             <figure>
               <img src="${project.coverImage}" alt="${project.title}" />
               <figcaption>
@@ -88,12 +90,12 @@
 
     const sync = () => {
       cards.forEach((card, index) => {
-        const current = angle + index * 120;
+        const current = angle + index * orbitStep;
         card.style.setProperty("--angle", `${current}deg`);
         card.style.setProperty("--radius", `${radius}px`);
         const normalized = ((current % 360) + 360) % 360;
         const distance = Math.min(normalized, 360 - normalized);
-        const active = distance < 35;
+        const active = distance <= orbitStep / 2;
         card.classList.toggle("is-active", active);
         if (active) {
           list.forEach((item) => item.classList.toggle("is-active", item.dataset.openProject === card.dataset.project));
@@ -102,6 +104,15 @@
     };
 
     sync();
+
+    document.getElementById("carousel-prev")?.addEventListener("click", () => {
+      angle += orbitStep;
+      sync();
+    });
+    document.getElementById("carousel-next")?.addEventListener("click", () => {
+      angle -= orbitStep;
+      sync();
+    });
 
     stage.addEventListener(
       "wheel",
@@ -114,6 +125,12 @@
 
     cards.forEach((card) => {
       card.addEventListener("click", () => openModal(card.dataset.project));
+      card.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openModal(card.dataset.project);
+        }
+      });
     });
 
     let ticking = false;
@@ -121,8 +138,8 @@
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const nextRadius = Math.min(250, Math.max(180, stage.clientWidth * 0.26));
-        cards.forEach((card) => card.style.setProperty("--radius", `${nextRadius}px`));
+        radius = getRadius();
+        sync();
         ticking = false;
       });
     });
@@ -138,8 +155,23 @@
     });
     window.addEventListener("keydown", (event) => {
       if (event.key === "Escape") closeModal();
+      if (event.key === "Tab" && modal.classList.contains("is-open")) {
+        const focusable = [...modal.querySelectorAll("button, a[href]")];
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     });
+    modal.querySelector('a[href="#awards"]')?.addEventListener("click", closeModal);
   }
+
+  let modalTrigger = null;
 
   function openModal(slug) {
     const modal = document.getElementById("project-modal");
@@ -180,62 +212,43 @@
 
     const mosaic = document.getElementById("modal-mosaic");
     mosaic.innerHTML = [project.heroImage, project.coverImage]
-      .map((src) => `<img src="${src}" alt="${project.title}" />`)
+      .map((src) => `<a href="${src}" target="_blank" rel="noopener noreferrer" aria-label="打开${project.title}截图原图"><img src="${src}" alt="${project.title}" /></a>`)
       .join("");
 
+    modalTrigger = document.activeElement;
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
+    document.querySelectorAll("body > header, body > main, body > footer").forEach((element) => { element.inert = true; });
     document.body.style.overflow = "hidden";
+    modal.querySelector("[data-close-modal]").focus();
   }
 
   function closeModal() {
     const modal = document.getElementById("project-modal");
-    if (!modal) return;
+    if (!modal || !modal.classList.contains("is-open")) return;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    document.querySelectorAll("body > header, body > main, body > footer").forEach((element) => { element.inert = false; });
+    modalTrigger?.focus();
   }
 
   function wireTimeline() {
     const cards = [...document.querySelectorAll(".timeline-card")];
     if (!cards.length) return;
-
-    const update = () => {
-      const center = window.innerHeight * 0.5;
-      cards.forEach((card) => {
-        const rect = card.getBoundingClientRect();
-        const cardCenter = rect.top + rect.height / 2;
-        const distance = Math.abs(cardCenter - center);
-        const progress = Math.max(0, 1 - distance / (window.innerHeight * 0.78));
-        card.style.setProperty("--tilt", `${(progress - 0.5) * -10}deg`);
-        card.style.setProperty("--lift", `${Math.round(progress * -10)}px`);
-        card.classList.toggle("is-active", progress > 0.55);
-      });
-    };
-
-    let pending = false;
-    const onScroll = () => {
-      if (pending) return;
-      pending = true;
-      requestAnimationFrame(() => {
-        update();
-        pending = false;
-      });
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    cards.forEach((card) => {
-      card.addEventListener("mouseenter", update);
-    });
-    update();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => entry.target.classList.toggle("is-active", entry.isIntersecting));
+    }, { rootMargin: "-15% 0px -15% 0px", threshold: 0.3 });
+    cards.forEach((card) => observer.observe(card));
   }
 
   function initDetail() {
     const project = readProjectFromQuery();
     if (!project) return;
+    document.body.classList.toggle("case-study", project.layout === "case-study");
 
-    document.title = `${project.title} · 作品详情页`;
+    document.title = `${project.title} · 邱怡青作品集`;
+    document.querySelector('meta[name="description"]').content = project.summary;
     const title = document.getElementById("detail-title");
     const desc = document.getElementById("detail-desc");
     const fit = document.getElementById("detail-fit");
@@ -251,24 +264,37 @@
     live.href = "index.html#works";
     live.textContent = "View Works";
     galleryHeading.textContent = project.alias;
-    galleryCopy.textContent =
-      "右侧的六张卡片用高低错落的画廊排版承载截图、代码片段、说明与证明材料，悬停时会从黑白平滑恢复彩色。";
+    galleryCopy.textContent = project.galleryIntro || "查看项目截图、实现方法与相关证明。点击截图可在新标签页查看原图。";
 
-    facts.innerHTML = `
-      <div class="fact"><span>Category</span><strong>${project.category}</strong></div>
-      <div class="fact"><span>Tag Count</span><strong>${project.tags.length} Tags</strong></div>
-      <div class="fact"><span>Focus</span><strong>海外用户增长</strong></div>
-      <div class="fact"><span>Mode</span><strong>Horizontal Scroll</strong></div>
-    `;
+    const projectFacts = project.facts || [
+      { label: "Category", value: project.category },
+      { label: "Skills", value: project.tags.join(" / ") },
+      { label: "Focus", value: "海外用户增长" },
+      { label: "Materials", value: "项目截图与方法" },
+    ];
+    facts.innerHTML = projectFacts.map((fact) => `<div class="fact"><span>${escapeHtml(fact.label)}</span><strong>${escapeHtml(fact.value)}</strong></div>`).join("");
 
     grid.innerHTML = project.detailCards
       .map((card) => {
+        if (card.kind === "document") {
+          return `
+            <article class="gallery-card document-card ${card.span}">
+              <div class="copy">
+                <h5>${escapeHtml(card.title)}</h5>
+                <p>${escapeHtml(card.copy)}</p>
+                <a class="button secondary" href="${card.href}" target="_blank" rel="noopener noreferrer">${escapeHtml(card.label)}</a>
+                <a class="award-link" href="${card.href}" download>下载 Markdown 文件</a>
+              </div>
+            </article>`;
+        }
         if (card.kind === "image" || card.kind === "proof") {
           return `
             <article class="gallery-card ${card.span}">
-              <img src="${card.src}" alt="${card.caption}" style="height:${galleryMediaHeight(card.span)}px;" />
+              <a class="gallery-image-link" href="${card.src}" target="_blank" rel="noopener noreferrer" aria-label="打开${card.title || project.title}截图原图">
+                <img src="${card.src}" alt="${card.caption}" loading="lazy" style="height:${galleryMediaHeight(card.span)}px;" />
+              </a>
               <div class="copy">
-                <h5>${card.kind === "proof" ? "Proof" : "Visual"}</h5>
+                <h5>${card.title || (card.kind === "proof" ? "Proof" : "Visual")}</h5>
                 <p>${card.caption}</p>
               </div>
             </article>`;
@@ -292,17 +318,25 @@
       })
       .join("");
 
-    attachHorizontalInertia(document.getElementById("detail-shell"));
+    if (project.relatedProjects?.length) {
+      const related = document.createElement("nav");
+      related.className = "related-projects";
+      related.setAttribute("aria-label", "相关项目");
+      related.innerHTML = project.relatedProjects.map((item) => `<a class="button secondary" href="detail.html?project=${item.slug}">${escapeHtml(item.title)}</a>`).join("");
+      grid.after(related);
+    }
+
+    if (project.layout !== "case-study") attachHorizontalInertia(document.getElementById("detail-shell"));
   }
 
   function readProjectFromQuery() {
     const params = new URLSearchParams(location.search);
-    const slug = params.get("project") || "jobhunt";
+    const slug = params.get("project") || "ad-automation";
     return data.projects.find((project) => project.slug === slug) || data.projects[0];
   }
 
   function attachHorizontalInertia(container) {
-    if (!container) return;
+    if (!container || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let velocity = 0;
     let raf = 0;
 
